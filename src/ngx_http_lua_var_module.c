@@ -160,3 +160,204 @@ ngx_http_lua_var_ffi_scheme(ngx_http_request_t *r, ngx_str_t *scheme)
 
     return NGX_OK;
 }
+
+// 迁移开始
+
+ngx_int_t
+ngx_http_lua_var_ffi_request_method(ngx_http_request_t *r, ngx_str_t *request_method)
+{
+    if (r->main->method_name.data) {
+        request_method->len = r->main->method_name.len;
+        request_method->data = r->main->method_name.data;
+    }
+
+    return NGX_OK;
+}
+
+ngx_int_t
+ngx_http_lua_var_ffi_remote_port(ngx_http_request_t *r, ngx_str_t *remote_port)
+{   
+    ngx_uint_t  port;
+
+    remote_port->data = ngx_pnalloc(r->pool, sizeof("65535") - 1);
+    if (remote_port->data == NULL) {
+        return NGX_ERROR;
+    }
+
+    port = ngx_inet_get_port(r->connection->sockaddr);
+
+    if (port > 0 && port < 65536) {
+        remote_port->len = ngx_sprintf(remote_port->data, "%ui", port) - remote_port->data;
+    }
+
+    return NGX_OK;
+}
+
+ngx_int_t
+ngx_http_lua_var_ffi_server_port(ngx_http_request_t *r, ngx_str_t *server_port)
+{   
+    ngx_uint_t  port;
+
+    if (ngx_connection_local_sockaddr(r->connection, NULL, 0) != NGX_OK) {
+        return NGX_ERROR;
+    }
+
+    server_port->data = ngx_pnalloc(r->pool, sizeof("65535") - 1);
+    if (server_portv->data == NULL) {
+        return NGX_ERROR;
+    }
+
+    port = ngx_inet_get_port(r->connection->local_sockaddr);
+
+    if (port > 0 && port < 65536) {
+        server_port->len = ngx_sprintf(server_port->data, "%ui", port) - server_port->data;
+    }
+
+    return NGX_OK;
+}
+
+
+// 迁移ngxvar  ngx_http_variable_request 开始
+ngx_int_t
+ngx_http_lua_var_ffi_server_protocol(ngx_http_request_t *r, ngx_str_t *server_protocol)
+{   
+    uintptr_t data = offsetof(ngx_http_request_t, http_protocol);
+
+    ngx_str_t  *s;
+
+    s = (ngx_str_t *) ((char *) r + data);
+
+    if (s->data) {
+        server_protocol->len = s->len;
+        server_protocol->data = s->data;
+    }
+
+    return NGX_OK;
+}
+
+ngx_int_t
+ngx_http_lua_var_ffi_request_uri(ngx_http_request_t *r, ngx_str_t *request_uri)
+{   
+    uintptr_t data = offsetof(ngx_http_request_t, unparsed_uri);
+
+    ngx_str_t  *s;
+
+    s = (ngx_str_t *) ((char *) r + data);
+
+    if (s->data) {
+        request_uri->len = s->len;
+        request_uri->data = s->data;
+    }
+
+    return NGX_OK;
+}
+
+ngx_int_t
+ngx_http_lua_var_ffi_query_string(ngx_http_request_t *r, ngx_str_t *query_string)
+{   
+    uintptr_t data = offsetof(ngx_http_request_t, args);
+
+    ngx_str_t  *s;
+
+    s = (ngx_str_t *) ((char *) r + data);
+
+    if (s->data) {
+        query_string->len = s->len;
+        query_string->data = s->data;
+    }
+
+    return NGX_OK;
+}
+
+// 上面有了
+// ngx_int_t
+// ngx_http_lua_var_ffi_uri(ngx_http_request_t *r, ngx_str_t *uri)
+// {   
+//     uintptr_t data = offsetof(ngx_http_request_t, uri);
+
+//     ngx_str_t  *s;
+
+//     s = (ngx_str_t *) ((char *) r + data);
+
+//     if (s->data) {
+//         uri->len = s->len;
+//         uri->data = s->data;
+//     }
+
+//     return NGX_OK;
+// }
+
+// 迁移ngxvar  ngx_http_variable_request 结束
+
+
+// 迁移ngxvar  ngx_http_variable_header 开始
+
+ngx_int_t
+ngx_http_lua_var_ffi_http_host(ngx_http_request_t *r, ngx_str_t *http_host)
+{   
+    uintptr_t data = offsetof(ngx_http_request_t, headers_in.host);
+
+    ngx_table_elt_t  *h;
+
+    h = *(ngx_table_elt_t **) ((char *) r + data);
+
+    if (h) {
+        http_host->len = h->value.len;
+        http_host->data = h->value.data;
+    }
+
+    return NGX_OK;
+}
+
+ngx_int_t
+ngx_http_lua_var_ffi_http_user_agent(ngx_http_request_t *r, ngx_str_t *http_user_agent)
+{   
+    uintptr_t data = offsetof(ngx_http_request_t, headers_in.user_agent);
+
+    ngx_table_elt_t  *h;
+
+    h = *(ngx_table_elt_t **) ((char *) r + data);
+
+    if (h) {
+        http_user_agent->len = h->value.len;
+        http_user_agent->data = h->value.data;
+    }
+
+    return NGX_OK;
+}
+
+ngx_int_t
+ngx_http_lua_var_ffi_http_referer(ngx_http_request_t *r, ngx_str_t *http_referer)
+{   
+    uintptr_t data = offsetof(ngx_http_request_t, headers_in.referer);
+
+    ngx_table_elt_t  *h;
+
+    h = *(ngx_table_elt_t **) ((char *) r + data);
+
+    if (h) {
+        http_referer->len = h->value.len;
+        http_referer->data = h->value.data;
+    }
+
+    return NGX_OK;
+}
+
+ngx_int_t
+ngx_http_lua_var_ffi_content_type(ngx_http_request_t *r, ngx_str_t *content_type)
+{   
+    uintptr_t data = offsetof(ngx_http_request_t, headers_in.content_type);
+
+    ngx_table_elt_t  *h;
+
+    h = *(ngx_table_elt_t **) ((char *) r + data);
+
+    if (h) {
+        content_type->len = h->value.len;
+        content_type->data = h->value.data;
+    }
+
+    return NGX_OK;
+}
+
+// 迁移ngxvar  ngx_http_variable_header 结束
