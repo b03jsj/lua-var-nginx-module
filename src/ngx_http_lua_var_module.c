@@ -163,13 +163,79 @@ ngx_http_lua_var_ffi_scheme(ngx_http_request_t *r, ngx_str_t *scheme)
 
 // 迁移开始
 ngx_int_t
+ngx_http_lua_var_ffi_ngx_http_variable_headers_internal(ngx_http_request_t *r,
+    ngx_str_t *v, uintptr_t data, u_char sep)
+{
+    size_t             len;
+    u_char            *p, *end;
+    ngx_uint_t         i, n;
+    ngx_array_t       *a;
+    ngx_table_elt_t  **h;
+
+    a = (ngx_array_t *) ((char *) r + data);
+
+    n = a->nelts;
+    h = a->elts;
+
+    len = 0;
+
+    for (i = 0; i < n; i++) {
+
+        if (h[i]->hash == 0) {
+            continue;
+        }
+
+        len += h[i]->value.len + 2;
+    }
+
+    if (len == 0) {
+        return NGX_OK;
+    }
+
+    len -= 2;
+
+    if (n == 1) {
+        v->len = (*h)->value.len;
+        v->data = (*h)->value.data;
+
+        return NGX_OK;
+    }
+
+    p = ngx_pnalloc(r->pool, len);
+    if (p == NULL) {
+        return NGX_ERROR;
+    }
+
+    v->len = len;
+    v->data = p;
+
+    end = p + len;
+
+    for (i = 0; /* void */ ; i++) {
+
+        if (h[i]->hash == 0) {
+            continue;
+        }
+
+        p = ngx_copy(p, h[i]->value.data, h[i]->value.len);
+
+        if (p == end) {
+            break;
+        }
+
+        *p++ = sep; *p++ = ' ';
+    }
+
+    return NGX_OK;
+}
+
+ngx_int_t
 ngx_http_lua_var_ffi_http_cookie(ngx_http_request_t *r, ngx_str_t *http_cookie)
 {
     uintptr_t data = offsetof(ngx_http_request_t, headers_in.cookies);
 
-    return ngx_http_variable_headers_internal(r, http_cookie, data, ';');
+    return ngx_http_lua_var_ffi_ngx_http_variable_headers_internal(r, http_cookie, data, ';');
 }
-
 
 ngx_int_t
 ngx_http_lua_var_ffi_request_method(ngx_http_request_t *r, ngx_str_t *request_method)
