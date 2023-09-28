@@ -203,7 +203,7 @@ ngx_http_lua_var_ffi_server_port(ngx_http_request_t *r, ngx_str_t *server_port)
     }
 
     server_port->data = ngx_pnalloc(r->pool, sizeof("65535") - 1);
-    if (server_portv->data == NULL) {
+    if (server_port->data == NULL) {
         return NGX_ERROR;
     }
 
