@@ -162,6 +162,14 @@ ngx_http_lua_var_ffi_scheme(ngx_http_request_t *r, ngx_str_t *scheme)
 }
 
 // 迁移开始
+ngx_int_t
+ngx_http_lua_var_ffi_http_cookie(ngx_http_request_t *r, ngx_str_t *http_cookie)
+{
+    uintptr_t data = offsetof(ngx_http_request_t, headers_in.cookies);
+
+    return ngx_http_variable_headers_internal(r, http_cookie, data, ';');
+}
+
 
 ngx_int_t
 ngx_http_lua_var_ffi_request_method(ngx_http_request_t *r, ngx_str_t *request_method)
@@ -203,7 +211,7 @@ ngx_http_lua_var_ffi_server_port(ngx_http_request_t *r, ngx_str_t *server_port)
     }
 
     server_port->data = ngx_pnalloc(r->pool, sizeof("65535") - 1);
-    if (server_port->data == NULL) {
+    if (server_portv->data == NULL) {
         return NGX_ERROR;
     }
 
