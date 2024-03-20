@@ -232,7 +232,7 @@ ngx_http_lua_var_ffi_ngx_http_variable_headers_internal(ngx_http_request_t *r,
 ngx_int_t
 ngx_http_lua_var_ffi_http_cookie(ngx_http_request_t *r, ngx_str_t *http_cookie)
 {
-    uintptr_t data = offsetof(ngx_http_request_t, headers_in.cookies);
+    uintptr_t data = offsetof(ngx_http_request_t, headers_in.cookie);
 
     return ngx_http_lua_var_ffi_ngx_http_variable_headers_internal(r, http_cookie, data, ';');
 }
